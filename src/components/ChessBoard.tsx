@@ -4,15 +4,30 @@ import { useGameStore } from '../store/gameStore'
 import { useChessMoves } from '../hooks/useChessMoves'
 
 export default function ChessBoard() {
-    const { fen, myColor, lastMove, chess, selectedSquare, candidateMoves } = useGameStore()
+    const {
+        fen,
+        fenHistory,
+        myColor,
+        lastMove,
+        chess,
+        selectedSquare,
+        candidateMoves,
+        reviewMode,
+        analysisIndex,
+        engineSuggestion
+    } = useGameStore()
     const { onDrop, onSquareClick, isPieceMovable } = useChessMoves()
 
     const boardOrientation = myColor === 'b' ? 'black' : 'white'
 
+    // In review mode, show the FEN at the specific index
+    const currentFen = reviewMode && analysisIndex !== null ? fenHistory[analysisIndex] : fen
+
     const squareStyles: Record<string, CSSProperties> = {}
 
-    // 1. Highlight last move
-    if (lastMove) {
+    // 1. Highlight last move (only in live play or if looking at the latest move in review)
+    const isShowingLatest = !reviewMode || analysisIndex === fenHistory.length - 1
+    if (lastMove && isShowingLatest) {
         squareStyles[lastMove.from] = { backgroundColor: 'rgba(255, 215, 0, 0.25)' }
         squareStyles[lastMove.to] = { backgroundColor: 'rgba(255, 215, 0, 0.35)' }
     }
@@ -31,7 +46,7 @@ export default function ChessBoard() {
     })
 
     // 4. Highlight king in check
-    if (chess.inCheck()) {
+    if (chess.inCheck() && !reviewMode) {
         const turn = chess.turn()
         // Find king square
         let kingSq: string | null = null
@@ -50,16 +65,27 @@ export default function ChessBoard() {
         }
     }
 
+    // 5. Engine Arrows
+    const customArrows: { startSquare: string; endSquare: string; color: string }[] = []
+    if (reviewMode && engineSuggestion) {
+        customArrows.push({
+            startSquare: engineSuggestion.from,
+            endSquare: engineSuggestion.to,
+            color: 'rgba(0, 255, 0, 0.5)'
+        })
+    }
+
     return (
         <div className="board-container rounded-sm sm:rounded-xl overflow-hidden shadow-2xl ring-1 ring-white/10">
             <Chessboard
                 options={{
-                    position: fen,
+                    position: currentFen,
                     onPieceDrop: onDrop,
                     onSquareClick: ({ square }) => onSquareClick(square),
                     boardOrientation: boardOrientation,
                     canDragPiece: isPieceMovable,
                     squareStyles: squareStyles,
+                    arrows: customArrows,
                     darkSquareStyle: { backgroundColor: '#769656' },
                     lightSquareStyle: { backgroundColor: '#eeeed2' },
                     boardStyle: {

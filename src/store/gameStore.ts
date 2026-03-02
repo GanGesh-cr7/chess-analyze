@@ -33,6 +33,7 @@ export interface GameState {
     // Chess
     chess: Chess
     fen: string
+    fenHistory: string[]
     moveHistory: Move[]
     capturedPieces: CapturedPieces
     lastMove: { from: string; to: string } | null
@@ -50,6 +51,9 @@ export interface GameState {
     rematchOfferFrom: PlayerColor | null
     selectedSquare: string | null
     candidateMoves: string[]
+    reviewMode: boolean
+    analysisIndex: number | null
+    engineSuggestion: { from: string; to: string } | null
 
     // Actions
     setPhase: (phase: GamePhase) => void
@@ -67,6 +71,9 @@ export interface GameState {
     setDrawOfferPending: (pending: boolean, from?: PlayerColor) => void
     setRematchOfferPending: (pending: boolean, from?: PlayerColor) => void
     setSelectedSquare: (sq: string | null) => void
+    setReviewMode: (active: boolean) => void
+    setAnalysisIndex: (index: number | null) => void
+    setEngineSuggestion: (suggestion: { from: string; to: string } | null) => void
     resetGame: () => void
 }
 
@@ -110,6 +117,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 
     chess: initialChess,
     fen: initialChess.fen(),
+    fenHistory: [initialChess.fen()],
     moveHistory: [],
     capturedPieces: { w: [], b: [] },
     lastMove: null,
@@ -119,6 +127,9 @@ export const useGameStore = create<GameState>((set, get) => ({
     rematchOfferFrom: null,
     selectedSquare: null,
     candidateMoves: [],
+    reviewMode: false,
+    analysisIndex: null,
+    engineSuggestion: null,
 
     timeControl: DEFAULT_TIME_CONTROL,
     whiteTime: DEFAULT_TIME_CONTROL.minutes * 60 * 1000,
@@ -155,6 +166,10 @@ export const useGameStore = create<GameState>((set, get) => ({
         set({ selectedSquare, candidateMoves: moves.map(m => m.to) })
     },
 
+    setReviewMode: (reviewMode) => set({ reviewMode }),
+    setAnalysisIndex: (analysisIndex) => set({ analysisIndex }),
+    setEngineSuggestion: (engineSuggestion) => set({ engineSuggestion }),
+
     applyMove: (from, to, promotion = 'q') => {
         const { chess, moveHistory, timeControl, whiteTime, blackTime } = get()
         // Clear selection on move
@@ -163,13 +178,15 @@ export const useGameStore = create<GameState>((set, get) => ({
             const move = chess.move({ from, to, promotion })
             if (!move) return null
             const newHistory = [...moveHistory, move]
+            const newFen = chess.fen()
             const captured = computeCaptured(chess)
             // Add increment
             const turn = move.color // color that just moved
             const wTime = turn === 'w' ? whiteTime + timeControl.increment * 1000 : whiteTime
             const bTime = turn === 'b' ? blackTime + timeControl.increment * 1000 : blackTime
             set({
-                fen: chess.fen(),
+                fen: newFen,
+                fenHistory: [...get().fenHistory, newFen],
                 moveHistory: newHistory,
                 capturedPieces: captured,
                 lastMove: { from, to },
@@ -187,11 +204,11 @@ export const useGameStore = create<GameState>((set, get) => ({
     },
 
     resetGame: () => {
-        const chess = new Chess()
         const tc = get().timeControl
         set({
-            chess,
-            fen: chess.fen(),
+            chess: initialChess,
+            fen: initialChess.fen(),
+            fenHistory: [initialChess.fen()],
             moveHistory: [],
             capturedPieces: { w: [], b: [] },
             lastMove: null,
@@ -205,6 +222,9 @@ export const useGameStore = create<GameState>((set, get) => ({
             candidateMoves: [],
             rematchOfferPending: false,
             rematchOfferFrom: null,
+            reviewMode: false,
+            analysisIndex: null,
+            engineSuggestion: null,
         })
     },
 }))

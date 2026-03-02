@@ -10,7 +10,7 @@ export default function GameView() {
     const { result } = useGameStore()
 
     return (
-        <div className="flex-1 flex flex-col lg:flex-row items-center lg:justify-center p-2 sm:p-4 gap-4 lg:gap-6 min-h-0 overflow-y-auto lg:overflow-hidden">
+        <div className="flex-1 flex flex-col lg:flex-row items-center lg:justify-center p-2 sm:p-4 gap-4 lg:gap-6 min-h-0 overflow-y-auto lg:overflow-hidden relative">
             {/* Board Container - Fixed size and no shrink */}
             <div className="flex-shrink-0 flex items-center justify-center w-full lg:w-auto py-2">
                 <ChessBoard />

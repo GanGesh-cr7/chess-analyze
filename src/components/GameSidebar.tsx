@@ -1,5 +1,6 @@
+import { useEffect, useState } from 'react'
 import { useGameStore } from '../store/gameStore'
-import { peerNetwork } from '../network/peer'
+import { engine } from '../utils/engine'
 import PlayerCard from './PlayerCard'
 import MoveHistory from './MoveHistory'
 import CapturedPieces from './CapturedPieces'
@@ -16,126 +17,120 @@ export default function GameSidebar() {
         moveHistory,
         capturedPieces,
         result,
-        drawOfferPending,
-        drawOfferFrom,
-        setDrawOfferPending,
-        setResult,
         phase,
+        reviewMode,
+        analysisIndex,
+        setAnalysisIndex,
+        setEngineSuggestion,
+        fenHistory
     } = useGameStore()
+
+    const [evaluation, setEvaluation] = useState<string>('0.0')
 
     const currentTurn = chess.turn()
     const opponentColor = myColor === 'w' ? 'b' : 'w'
 
-    const handleResign = () => {
-        if (result) return
-        peerNetwork.send({ type: 'resign' })
-        setResult({ winner: opponentColor!, reason: 'resignation' })
+    // Engine Analysis Logic
+    useEffect(() => {
+        if (reviewMode && analysisIndex !== null) {
+            const fen = fenHistory[analysisIndex]
+            engine.stop()
+            engine.analyze(fen).then((res) => {
+                setEvaluation(res.evaluation)
+                // Convert uci bestmove to squares
+                if (res.bestMove && res.bestMove.length >= 4) {
+                    const from = res.bestMove.substring(0, 2)
+                    const to = res.bestMove.substring(2, 4)
+                    setEngineSuggestion({ from, to })
+                }
+            })
+        } else {
+            setEngineSuggestion(null)
+        }
+    }, [reviewMode, analysisIndex, fenHistory, setEngineSuggestion])
+
+    const handlePrev = () => {
+        if (analysisIndex !== null && analysisIndex > 0) {
+            setAnalysisIndex(analysisIndex - 1)
+        }
     }
 
-    const handleDrawOffer = () => {
-        if (result) return
-        peerNetwork.send({ type: 'draw_offer' })
+    const handleNext = () => {
+        if (analysisIndex !== null && analysisIndex < fenHistory.length - 1) {
+            setAnalysisIndex(analysisIndex + 1)
+        }
     }
 
-    const handleAcceptDraw = () => {
-        peerNetwork.send({ type: 'draw_accept' })
-        setResult({ winner: 'draw', reason: 'draw_agreed' })
-        setDrawOfferPending(false)
-    }
-
-    const handleDeclineDraw = () => {
-        peerNetwork.send({ type: 'draw_decline' })
-        setDrawOfferPending(false)
-    }
-
-    // Which player is on top (opponent) and bottom (me)
     const topColor = opponentColor ?? 'b'
     const bottomColor = myColor ?? 'w'
 
     return (
         <div className="flex flex-col h-full gap-3">
-            {/* Connection status */}
             <div className="flex items-center justify-between">
                 <ConnectionStatus />
-                <span className="text-xs text-white/30">
-                    {phase === 'playing' && !result
-                        ? currentTurn === 'w'
-                            ? "White's turn"
-                            : "Black's turn"
-                        : ''}
+                <span className="text-xs text-white/30 font-medium uppercase tracking-wider">
+                    {reviewMode ? 'Analysis Mode' : !result && phase === 'playing' ? (currentTurn === 'w' ? "White's turn" : "Black's turn") : ''}
                 </span>
             </div>
 
-            {/* Opponent */}
             <PlayerCard
                 name={opponentName}
                 color={topColor}
                 timeMs={topColor === 'w' ? whiteTime : blackTime}
-                isActive={!result && currentTurn === topColor}
+                isActive={!result && !reviewMode && currentTurn === topColor}
                 isMe={false}
             />
 
-            {/* Move history */}
-            <div className="glass rounded-xl flex-1 min-h-0 flex flex-col overflow-hidden">
+            <div className="glass rounded-xl flex-1 min-h-0 flex flex-col overflow-hidden relative">
                 <MoveHistory moves={moveHistory} />
+
+                {/* Analysis Controls Overlay */}
+                {reviewMode && (
+                    <div className="absolute bottom-0 inset-x-0 glass-strong border-t border-white/10 p-3 animate-slide-up">
+                        <div className="flex items-center justify-between mb-2">
+                            <span className="text-[10px] text-white/40 font-bold uppercase">Engine Depth 12</span>
+                            <span className={`text-xs font-mono font-bold ${evaluation.startsWith('M') ? 'text-amber-400' : 'text-emerald-400'}`}>
+                                {evaluation}
+                            </span>
+                        </div>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={handlePrev}
+                                disabled={analysisIndex === 0}
+                                className="flex-1 py-1 px-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 disabled:opacity-30 transition-all font-bold"
+                            >
+                                ←
+                            </button>
+                            <button
+                                onClick={() => setAnalysisIndex(0)}
+                                className="px-3 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 text-[10px] uppercase font-bold"
+                            >
+                                Start
+                            </button>
+                            <button
+                                onClick={handleNext}
+                                disabled={analysisIndex === fenHistory.length - 1}
+                                className="flex-1 py-1 px-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 disabled:opacity-30 transition-all font-bold"
+                            >
+                                →
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
 
-            {/* Captured pieces */}
             <CapturedPieces
                 capturedByWhite={capturedPieces.b}
                 capturedByBlack={capturedPieces.w}
             />
 
-            {/* Me */}
             <PlayerCard
                 name={myName}
                 color={bottomColor}
                 timeMs={bottomColor === 'w' ? whiteTime : blackTime}
-                isActive={!result && currentTurn === bottomColor}
+                isActive={!result && !reviewMode && currentTurn === bottomColor}
                 isMe
             />
-
-            {/* Draw offer banner */}
-            {drawOfferPending && drawOfferFrom !== myColor && (
-                <div className="glass rounded-xl px-4 py-3 border border-amber-500/30 animate-fade-in">
-                    <p className="text-sm text-amber-300 font-medium mb-2">
-                        🤝 Opponent offers a draw
-                    </p>
-                    <div className="flex gap-2">
-                        <button
-                            onClick={handleAcceptDraw}
-                            className="flex-1 py-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 text-sm font-medium transition-colors"
-                        >
-                            Accept
-                        </button>
-                        <button
-                            onClick={handleDeclineDraw}
-                            className="flex-1 py-1.5 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 text-sm font-medium transition-colors"
-                        >
-                            Decline
-                        </button>
-                    </div>
-                </div>
-            )}
-
-            {/* Action buttons */}
-            {!result && phase === 'playing' && (
-                <div className="flex gap-2">
-                    <button
-                        onClick={handleDrawOffer}
-                        className="flex-1 py-2 rounded-xl glass hover:bg-white/10 text-white/60 hover:text-amber-300 text-sm font-medium transition-all border border-white/5 hover:border-amber-500/30"
-                    >
-                        ½ Draw
-                    </button>
-                    <button
-                        onClick={handleResign}
-                        className="flex-1 py-2 rounded-xl glass hover:bg-rose-500/10 text-white/60 hover:text-rose-400 text-sm font-medium transition-all border border-white/5 hover:border-rose-500/30"
-                    >
-                        🏳 Resign
-                    </button>
-                </div>
-            )}
         </div>
     )
 }
-
