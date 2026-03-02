@@ -27,7 +27,14 @@ interface GameEndModalProps {
 }
 
 export default function GameEndModal({ result }: GameEndModalProps) {
-    const { myColor, opponentName } = useGameStore()
+    const {
+        myColor,
+        opponentName,
+        rematchOfferPending,
+        rematchOfferFrom,
+        setRematchOfferPending,
+        resetGame,
+    } = useGameStore()
 
     let headline = ''
     let subline = ''
@@ -60,6 +67,24 @@ export default function GameEndModal({ result }: GameEndModalProps) {
         })
     }
 
+    const handleRematchOffer = () => {
+        peerNetwork.send({ type: 'rematch_offer' })
+        setRematchOfferPending(true, myColor!)
+    }
+
+    const handleAcceptRematch = () => {
+        peerNetwork.send({ type: 'rematch_accept' })
+        resetGame()
+    }
+
+    const handleDeclineRematch = () => {
+        peerNetwork.send({ type: 'rematch_decline' })
+        setRematchOfferPending(false)
+    }
+
+    const isOutgoingRematch = rematchOfferPending && rematchOfferFrom === myColor
+    const isIncomingRematch = rematchOfferPending && rematchOfferFrom !== myColor
+
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
             <div className="glass-strong rounded-2xl p-8 max-w-sm w-full mx-4 animate-slide-up text-center shadow-2xl border border-white/10">
@@ -67,16 +92,47 @@ export default function GameEndModal({ result }: GameEndModalProps) {
                 <h2 className={`text-3xl font-bold mb-2 font-['Outfit'] ${headlineColor}`}>{headline}</h2>
                 <p className="text-white/50 text-sm mb-8">{subline}</p>
 
-                <div className="flex gap-3 justify-center">
+                <div className="flex flex-col gap-3">
+                    {/* Rematch Flow */}
+                    {isIncomingRematch ? (
+                        <div className="space-y-3 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+                            <p className="text-sm text-emerald-400 font-medium">Rematch requested!</p>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={handleAcceptRematch}
+                                    className="flex-1 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-white font-semibold text-xs transition-all"
+                                >
+                                    Accept
+                                </button>
+                                <button
+                                    onClick={handleDeclineRematch}
+                                    className="flex-1 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 text-xs transition-all"
+                                >
+                                    Decline
+                                </button>
+                            </div>
+                        </div>
+                    ) : isOutgoingRematch ? (
+                        <div className="py-2.5 px-4 rounded-xl bg-white/5 text-white/50 text-sm border border-white/5 animate-pulse">
+                            Waiting for opponent...
+                        </div>
+                    ) : (
+                        <button
+                            onClick={handleRematchOffer}
+                            className="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white font-semibold text-sm transition-all active:scale-95"
+                        >
+                            Rematch
+                        </button>
+                    )}
+
                     <button
                         onClick={handleNewGame}
-                        className="px-6 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white font-semibold text-sm transition-all active:scale-95"
+                        className="w-full py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white/60 text-sm transition-all"
                     >
-                        New Game
+                        Main Menu
                     </button>
                 </div>
             </div>
         </div>
     )
 }
-

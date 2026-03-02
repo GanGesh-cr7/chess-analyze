@@ -11,6 +11,9 @@ export type PeerMessage =
     | { type: 'draw_decline' }
     | { type: 'timer_sync'; whiteTime: number; blackTime: number }
     | { type: 'hello'; name: string; color: PlayerColor }
+    | { type: 'rematch_offer' }
+    | { type: 'rematch_accept' }
+    | { type: 'rematch_decline' }
 
 class PeerNetwork {
     private peer: Peer | null = null
@@ -133,6 +136,19 @@ class PeerNetwork {
             case 'timer_sync': {
                 store.setWhiteTime(msg.whiteTime)
                 store.setBlackTime(msg.blackTime)
+                break
+            }
+            case 'rematch_offer': {
+                store.setRematchOfferPending(true, store.myColor === 'w' ? 'b' : 'w')
+                break
+            }
+            case 'rematch_accept': {
+                store.resetGame()
+                store.setRematchOfferPending(false)
+                break
+            }
+            case 'rematch_decline': {
+                store.setRematchOfferPending(false)
                 break
             }
         }

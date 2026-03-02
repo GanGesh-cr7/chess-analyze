@@ -46,6 +46,8 @@ export interface GameState {
     result: GameResult | null
     drawOfferPending: boolean
     drawOfferFrom: PlayerColor | null
+    rematchOfferPending: boolean
+    rematchOfferFrom: PlayerColor | null
     selectedSquare: string | null
     candidateMoves: string[]
 
@@ -63,6 +65,7 @@ export interface GameState {
     setBlackTime: (t: number) => void
     setResult: (r: GameResult) => void
     setDrawOfferPending: (pending: boolean, from?: PlayerColor) => void
+    setRematchOfferPending: (pending: boolean, from?: PlayerColor) => void
     setSelectedSquare: (sq: string | null) => void
     resetGame: () => void
 }
@@ -110,6 +113,10 @@ export const useGameStore = create<GameState>((set, get) => ({
     moveHistory: [],
     capturedPieces: { w: [], b: [] },
     lastMove: null,
+    drawOfferPending: false,
+    drawOfferFrom: null,
+    rematchOfferPending: false,
+    rematchOfferFrom: null,
     selectedSquare: null,
     candidateMoves: [],
 
@@ -118,8 +125,6 @@ export const useGameStore = create<GameState>((set, get) => ({
     blackTime: DEFAULT_TIME_CONTROL.minutes * 60 * 1000,
 
     result: null,
-    drawOfferPending: false,
-    drawOfferFrom: null,
 
     setPhase: (phase) => set({ phase }),
     setRoomId: (roomId) => set({ roomId }),
@@ -138,6 +143,8 @@ export const useGameStore = create<GameState>((set, get) => ({
     setResult: (result) => set({ result, phase: 'ended' }),
     setDrawOfferPending: (drawOfferPending, drawOfferFrom) =>
         set({ drawOfferPending, drawOfferFrom: drawOfferFrom ?? null }),
+    setRematchOfferPending: (rematchOfferPending, rematchOfferFrom) =>
+        set({ rematchOfferPending, rematchOfferFrom: rematchOfferFrom ?? null }),
     setSelectedSquare: (selectedSquare) => {
         if (!selectedSquare) {
             set({ selectedSquare: null, candidateMoves: [] })
@@ -196,6 +203,8 @@ export const useGameStore = create<GameState>((set, get) => ({
             phase: 'playing',
             selectedSquare: null,
             candidateMoves: [],
+            rematchOfferPending: false,
+            rematchOfferFrom: null,
         })
     },
 }))
