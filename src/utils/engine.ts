@@ -13,16 +13,25 @@ class ChessEngine {
     private init() {
         if (typeof Worker === 'undefined') return
 
-        // Using a public CDN for Stockfish.js (WASM version)
-        this.worker = new Worker('https://cdnjs.cloudflare.com/ajax/libs/stockfish.js/10.0.2/stockfish.js')
+        try {
+            // Using a Blob worker to avoid SecurityError with cross-origin script URLs
+            const stockfishUrl = 'https://cdnjs.cloudflare.com/ajax/libs/stockfish.js/10.0.2/stockfish.js'
+            const blobCode = `importScripts('${stockfishUrl}');`
+            const blob = new Blob([blobCode], { type: 'application/javascript' })
+            const workerUrl = URL.createObjectURL(blob)
 
-        this.worker.onmessage = (e) => {
-            if (this.onMessageCallback) {
-                this.onMessageCallback(e.data)
+            this.worker = new Worker(workerUrl)
+
+            this.worker.onmessage = (e) => {
+                if (this.onMessageCallback) {
+                    this.onMessageCallback(e.data)
+                }
             }
-        }
 
-        this.send('uci')
+            this.send('uci')
+        } catch (err) {
+            console.error('Failed to initialize Stockfish worker:', err)
+        }
     }
 
     send(command: string) {
@@ -33,6 +42,10 @@ class ChessEngine {
 
     analyze(fen: string, depth: number = 12): Promise<{ bestMove: string; evaluation: string }> {
         return new Promise((resolve) => {
+            if (!this.worker) {
+                return resolve({ bestMove: '', evaluation: '0.0' })
+            }
+
             this.send(`position fen ${fen}`)
             this.send(`go depth ${depth}`)
 
@@ -69,4 +82,12 @@ class ChessEngine {
     }
 }
 
-export const engine = new ChessEngine()
+// Singleton instance, wrapped to ensure it doesn't crash the entire app if it fails
+let engineInstance: ChessEngine | null = null
+try {
+    engineInstance = new ChessEngine()
+} catch (e) {
+    console.error('Error creating engine instance:', e)
+}
+
+export const engine = engineInstance!
