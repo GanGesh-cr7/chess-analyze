@@ -35,6 +35,7 @@ export interface GameState {
     fen: string
     fenHistory: string[]
     moveHistory: Move[]
+    moveQualities: string[] // Parallel array for status labels
     capturedPieces: CapturedPieces
     lastMove: { from: string; to: string } | null
 
@@ -119,6 +120,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     fen: initialChess.fen(),
     fenHistory: [initialChess.fen()],
     moveHistory: [],
+    moveQualities: [],
     capturedPieces: { w: [], b: [] },
     lastMove: null,
     drawOfferPending: false,
@@ -210,6 +212,7 @@ export const useGameStore = create<GameState>((set, get) => ({
             fen: initialChess.fen(),
             fenHistory: [initialChess.fen()],
             moveHistory: [],
+            moveQualities: [],
             capturedPieces: { w: [], b: [] },
             lastMove: null,
             result: null,

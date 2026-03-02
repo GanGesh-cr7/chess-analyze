@@ -96,7 +96,7 @@ export default function GameEndModal({ result }: GameEndModalProps) {
     const isIncomingRematch = rematchOfferPending && rematchOfferFrom !== myColor
 
     return (
-        <div className="absolute top-4 right-4 z-40 animate-slide-up pointer-events-auto">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 lg:top-4 lg:right-4 lg:translate-x-0 lg:translate-y-0 z-40 animate-slide-up pointer-events-auto">
             <div className="glass-strong rounded-2xl p-6 max-w-[280px] w-full shadow-2xl border border-white/10 text-center">
                 <div className="text-4xl mb-3">{RESULT_ICONS[result.reason]}</div>
                 <h2 className={`text-2xl font-bold mb-1 font-['Outfit'] ${headlineColor}`}>{headline}</h2>
