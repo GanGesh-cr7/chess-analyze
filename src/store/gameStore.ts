@@ -46,6 +46,8 @@ export interface GameState {
     result: GameResult | null
     drawOfferPending: boolean
     drawOfferFrom: PlayerColor | null
+    selectedSquare: string | null
+    candidateMoves: string[]
 
     // Actions
     setPhase: (phase: GamePhase) => void
@@ -61,6 +63,7 @@ export interface GameState {
     setBlackTime: (t: number) => void
     setResult: (r: GameResult) => void
     setDrawOfferPending: (pending: boolean, from?: PlayerColor) => void
+    setSelectedSquare: (sq: string | null) => void
     resetGame: () => void
 }
 
@@ -107,6 +110,8 @@ export const useGameStore = create<GameState>((set, get) => ({
     moveHistory: [],
     capturedPieces: { w: [], b: [] },
     lastMove: null,
+    selectedSquare: null,
+    candidateMoves: [],
 
     timeControl: DEFAULT_TIME_CONTROL,
     whiteTime: DEFAULT_TIME_CONTROL.minutes * 60 * 1000,
@@ -133,9 +138,20 @@ export const useGameStore = create<GameState>((set, get) => ({
     setResult: (result) => set({ result, phase: 'ended' }),
     setDrawOfferPending: (drawOfferPending, drawOfferFrom) =>
         set({ drawOfferPending, drawOfferFrom: drawOfferFrom ?? null }),
+    setSelectedSquare: (selectedSquare) => {
+        if (!selectedSquare) {
+            set({ selectedSquare: null, candidateMoves: [] })
+            return
+        }
+        const { chess } = get()
+        const moves = chess.moves({ square: selectedSquare as any, verbose: true })
+        set({ selectedSquare, candidateMoves: moves.map(m => m.to) })
+    },
 
     applyMove: (from, to, promotion = 'q') => {
         const { chess, moveHistory, timeControl, whiteTime, blackTime } = get()
+        // Clear selection on move
+        set({ selectedSquare: null, candidateMoves: [] })
         try {
             const move = chess.move({ from, to, promotion })
             if (!move) return null
@@ -178,6 +194,8 @@ export const useGameStore = create<GameState>((set, get) => ({
             whiteTime: tc.minutes * 60 * 1000,
             blackTime: tc.minutes * 60 * 1000,
             phase: 'playing',
+            selectedSquare: null,
+            candidateMoves: [],
         })
     },
 }))

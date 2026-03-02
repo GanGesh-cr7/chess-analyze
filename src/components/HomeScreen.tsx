@@ -207,13 +207,13 @@ export default function HomeScreen() {
                             <button
                                 onClick={handleCreate}
                                 disabled={loading}
-                                className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-bold text-sm transition-all active:scale-[0.98] disabled:opacity-60 shadow-lg shadow-emerald-900/30"
+                                className="w-full py-3.5 sm:py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-bold text-sm transition-all active:scale-[0.98] disabled:opacity-60 shadow-lg shadow-emerald-900/30"
                             >
                                 {loading ? 'Creating…' : '♔ Create Game'}
                             </button>
                             <button
                                 onClick={() => setView('join')}
-                                className="w-full py-3 rounded-xl glass hover:bg-white/10 text-white/70 hover:text-white font-semibold text-sm border border-white/10 transition-all active:scale-[0.98]"
+                                className="w-full py-3.5 sm:py-3 rounded-xl glass hover:bg-white/10 text-white/70 hover:text-white font-semibold text-sm border border-white/10 transition-all active:scale-[0.98]"
                             >
                                 ♟ Join Game
                             </button>

@@ -25,7 +25,7 @@ export default function App() {
   const isWaiting = phase === 'waiting'
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-[#0f0f13]">
+    <div className="flex flex-col h-[100dvh] overflow-hidden bg-[#0f0f13]">
       <Navbar />
       <main className="flex-1 flex flex-col min-h-0 overflow-auto">
         {isPlaying ? (

@@ -23,3 +23,5 @@ dist-ssr
 *.sln
 *.sw?
 tsc_output.txt
+
+.vercel

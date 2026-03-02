@@ -7,7 +7,7 @@ const KnightIcon = () => (
 
 export default function Navbar() {
     return (
-        <header className="h-14 glass border-b border-white/5 flex items-center px-6 gap-3 sticky top-0 z-50">
+        <header className="px-4 py-2 sm:px-6 sm:py-4 flex items-center justify-between border-b border-white/5 bg-[#0f0f13]/80 backdrop-blur-md">
             <div className="flex items-center gap-2.5 text-emerald-400">
                 <KnightIcon />
                 <span className="font-bold text-xl tracking-tight font-['Outfit']">
