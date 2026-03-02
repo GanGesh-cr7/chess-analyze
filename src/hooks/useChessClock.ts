@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { useGameStore } from '../store/gameStore'
-import { peerNetwork, _checkGameEnd } from '../network/peer'
+import { peerNetwork } from '../network/peer'
 
 /**
  * Manages the chess clock. The host (white) ticks the clock and syncs to
@@ -10,12 +10,8 @@ export function useChessClock() {
     const {
         phase,
         myColor,
-        chess,
-        whiteTime,
-        blackTime,
         setWhiteTime,
         setBlackTime,
-        setResult,
     } = useGameStore()
 
     const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)

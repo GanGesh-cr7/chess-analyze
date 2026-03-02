@@ -1,4 +1,3 @@
-import React from 'react'
 
 interface CapturedPiecesDisplayProps {
     capturedByWhite: string[]  // pieces captured by white (opponent's black pieces)
@@ -55,3 +54,4 @@ export default function CapturedPiecesDisplay({ capturedByWhite, capturedByBlack
         </div>
     )
 }
+

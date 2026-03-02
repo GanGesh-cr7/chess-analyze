@@ -1,4 +1,3 @@
-import React from 'react'
 
 interface PlayerCardProps {
     name: string
@@ -63,3 +62,4 @@ export default function PlayerCard({ name, color, timeMs, isActive, isMe }: Play
         </div>
     )
 }
+

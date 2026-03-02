@@ -1,4 +1,3 @@
-import React from 'react'
 import { useGameStore } from '../store/gameStore'
 import type { GameResult } from '../store/gameStore'
 import { peerNetwork } from '../network/peer'
@@ -28,7 +27,7 @@ interface GameEndModalProps {
 }
 
 export default function GameEndModal({ result }: GameEndModalProps) {
-    const { myColor, myName, opponentName, setPhase } = useGameStore()
+    const { myColor, opponentName } = useGameStore()
 
     let headline = ''
     let subline = ''
@@ -80,3 +79,4 @@ export default function GameEndModal({ result }: GameEndModalProps) {
         </div>
     )
 }
+

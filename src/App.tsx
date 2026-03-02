@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import { useEffect } from 'react'
 import { useGameStore } from './store/gameStore'
 import Navbar from './components/Navbar'
 import HomeScreen from './components/HomeScreen'
@@ -6,7 +6,6 @@ import GameView from './components/GameView'
 
 // Handle ?join=ROOMID deep links
 function useDeepLink() {
-  const { setPhase } = useGameStore()
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     const joinId = params.get('join')

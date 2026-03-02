@@ -5,13 +5,15 @@ import { _checkGameEnd } from '../network/peer'
 export function useChessMoves() {
     const { myColor, chess, phase, result } = useGameStore()
 
-    const onDrop = (sourceSquare: string, targetSquare: string, piece: string): boolean => {
-        if (phase !== 'playing' || result) return false
+    const onDrop = ({ piece, sourceSquare, targetSquare }: { piece: { pieceType: string }; sourceSquare: string; targetSquare: string | null }): boolean => {
+        if (phase !== 'playing' || result || !targetSquare) return false
 
         const turn = chess.turn()
         if (myColor !== turn) return false
 
-        const promotion = piece?.toLowerCase().endsWith('p') ? undefined : piece?.[1]?.toLowerCase()
+        // piece.pieceType is 'wP', 'bN', etc.
+        const pieceTypeChar = piece.pieceType[1].toLowerCase()
+        const promotion = piece.pieceType.toLowerCase().endsWith('p') ? undefined : pieceTypeChar
 
         const store = useGameStore.getState()
         const move = store.applyMove(sourceSquare, targetSquare, promotion ?? 'q')
@@ -28,9 +30,9 @@ export function useChessMoves() {
         return true
     }
 
-    const isPieceMovable = ({ piece }: { piece: string }): boolean => {
+    const isPieceMovable = ({ piece }: { piece: { pieceType: string } }): boolean => {
         if (phase !== 'playing' || result) return false
-        const pieceColor = piece[0] as 'w' | 'b'
+        const pieceColor = piece.pieceType[0] as 'w' | 'b'
         return pieceColor === myColor && myColor === chess.turn()
     }
 

@@ -1,4 +1,3 @@
-import React from 'react'
 import { useGameStore } from '../store/gameStore'
 import { peerNetwork } from '../network/peer'
 import PlayerCard from './PlayerCard'
@@ -139,3 +138,4 @@ export default function GameSidebar() {
         </div>
     )
 }
+

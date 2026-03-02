@@ -1,4 +1,4 @@
-import React from 'react'
+import { useRef, useEffect } from 'react'
 import type { Move } from 'chess.js'
 
 interface MoveHistoryProps {
@@ -11,8 +11,8 @@ export default function MoveHistory({ moves }: MoveHistoryProps) {
         pairs.push([moves[i], moves[i + 1]])
     }
 
-    const endRef = React.useRef<HTMLDivElement>(null)
-    React.useEffect(() => {
+    const endRef = useRef<HTMLDivElement>(null)
+    useEffect(() => {
         endRef.current?.scrollIntoView({ behavior: 'smooth' })
     }, [moves.length])
 
@@ -43,3 +43,4 @@ export default function MoveHistory({ moves }: MoveHistoryProps) {
         </div>
     )
 }
+

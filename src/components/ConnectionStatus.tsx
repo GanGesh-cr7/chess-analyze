@@ -1,4 +1,3 @@
-import React from 'react'
 import { useGameStore } from '../store/gameStore'
 
 const statuses = {
@@ -26,3 +25,4 @@ export default function ConnectionStatus() {
         </div>
     )
 }
+

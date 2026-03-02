@@ -1,4 +1,3 @@
-import React from 'react'
 
 const KnightIcon = () => (
     <svg viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7">
@@ -27,3 +26,4 @@ export default function Navbar() {
         </header>
     )
 }
+

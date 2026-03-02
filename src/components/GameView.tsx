@@ -1,4 +1,3 @@
-import React from 'react'
 import { useGameStore } from '../store/gameStore'
 import { useChessClock } from '../hooks/useChessClock'
 import ChessBoard from './ChessBoard'
@@ -27,3 +26,4 @@ export default function GameView() {
         </div>
     )
 }
+
